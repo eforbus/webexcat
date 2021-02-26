@@ -19,18 +19,18 @@ func main() {
 	var oneLine, verboseMode bool
 	var webhookURL, lines string
 
-	flag.StringVar(&webhookURL, "u", "", "Discord Webhook URL")
+	flag.StringVar(&webhookURL, "u", "", "Webex Webhook URL")
 	flag.BoolVar(&oneLine, "1", false, "Send message line-by-line")
 	flag.BoolVar(&verboseMode, "v", false, "Verbose mode")
 	flag.Parse()
 
-	webhookEnv := os.Getenv("DISCORD_WEBHOOK_URL")
+	webhookEnv := os.Getenv("WEBEX_WEBHOOK_URL")
 	if webhookEnv != "" {
 		webhookURL = webhookEnv
 	} else {
 		if webhookURL == "" {
 			if verboseMode {
-				fmt.Println("Discord Webhook URL not set!")
+				fmt.Println("Webex Webhook URL not set!")
 			}
 		}
 	}
@@ -47,7 +47,7 @@ func main() {
 		if oneLine {
 			if webhookURL != "" {
 				wg.Add(1)
-				go disCat(webhookURL, line)
+				go webexCat(webhookURL, line)
 			}
 		} else {
 			lines += line
@@ -57,7 +57,7 @@ func main() {
 
 	if !oneLine {
 		wg.Add(1)
-		go disCat(webhookURL, lines)
+		go webexCat(webhookURL, lines)
 	}
 	wg.Wait()
 }
@@ -76,10 +76,10 @@ func isStdin() bool {
 }
 
 type data struct {
-	Content string `json:"content"`
+	Content string `json:"markdown"`
 }
 
-func disCat(url string, line string) {
+func webexCat(url string, line string) {
 	data, _ := json.Marshal(data{Content: stripansi.Strip(line)})
 	http.Post(url, "application/json", strings.NewReader(string(data)))
 	wg.Done()
